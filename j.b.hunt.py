@@ -47,7 +47,6 @@ def apply_regex_rules(text):
     load_number = re.search(r'Carrier Confirmation for Load (.+)', text)
     rate = re.search(r'Total Rate:(.+)', text)
     broker_email = re.search(r'J.B. Hunt Contact\n.+?\n(.+)', text)
-    load_miles = re.search(r'Load Details\n(.+)', text)
     broker_email_address = broker_email.group(1) if broker_email else None
     if broker_email_address:
         email_match = re.search(
@@ -75,13 +74,34 @@ def apply_regex_rules(text):
         load_number.group(1) if load_number else None,
         rate.group(1) if rate else None,
         broker_email_address,
-        load_miles.group(1) if load_miles else None,
         pick_up,
         pick_up_t,
         consignee_location,
         delivery_times,
     )
+def processing_date_times(pick_up_t):
+    processed_PU_time = []
+    for date_time in pick_up_t:
+        date_time_parts = date_time.split('-')
+        if len(date_time_parts) == 1:
+            # Single date-time, add it as is
+            processed_PU_time.append(date_time)
+        else:
+            # Date-time range, add only the first date-time
+            processed_PU_time.append(date_time_parts[0].strip())
+    return processed_PU_time
 
+def process_date_times(delivery_times):
+    processed_DEL_times = []
+    for date_time in delivery_times:
+        date_time_parts = date_time.split('-')
+        if len(date_time_parts) == 1:
+            # Single date-time, add it as is
+            processed_DEL_times.append(date_time)
+        else:
+            # Date-time range, add only the first date-time
+            processed_DEL_times.append(date_time_parts[0].strip())
+    return processed_DEL_times
 
 def calculate_driving_distance(locations):
     total_distance = 0.0
@@ -97,7 +117,8 @@ def calculate_driving_distance(locations):
     return total_distance
 
 
-def save_result_to_firebase(load_number, rate, broker_email, load_miles, pick_up, pick_up_t, consignee_location, delivery_times, full_distance):
+def save_result_to_firebase(load_number, rate, broker_email, pick_up, processed_pick_up_times, consignee_location, processed_delivery_times, full_distance):
+    
 
     loads_ref = db.collection('users').document(user_uid).collection('Loads')
 
@@ -114,10 +135,10 @@ def save_result_to_firebase(load_number, rate, broker_email, load_miles, pick_up
         'Rate': rate,
         'BrokerEmail': broker_email,
         'LoadMiles': full_distance_int,
-        'PickUp': pick_up,
+        'PickUp': processed_pick_up_times,
         'PickUpTime': pick_up_t,
         'Deliveries': consignee_location,
-        'DeliveryTimes': delivery_times,
+        'DeliveryTimes': processed_delivery_times,
         'Status': 'Active',
         'Path': timestamp,
         'Submit BOL': 'no',
@@ -150,8 +171,14 @@ pdf_text = extract_text_from_pdf(file_name)
 
 # Apply regex rules to extract information
 (
-    load_number, rate, broker_email, load_miles, pick_up, pick_up_t, consignee_location, delivery_times
+    load_number, rate, broker_email, pick_up, pick_up_t, consignee_location, delivery_times
 ) = apply_regex_rules(pdf_text)
+
+# Process pick-up times
+processed_pick_up_times = processing_date_times(pick_up_t)
+
+# Process delivery times
+processed_delivery_times = process_date_times(delivery_times)
 
 # Calculate the driving distance between locations
 if pick_up and consignee_location:
@@ -163,8 +190,10 @@ else:
 
 
 # Save the result to Firebase
+# Save the result to Firebase
 save_result_to_firebase(
-    load_number, rate, broker_email, load_miles, pick_up, pick_up_t, consignee_location, delivery_times, full_distance
+    load_number, rate, broker_email, pick_up, processed_pick_up_times, consignee_location, processed_delivery_times, full_distance
 )
+
 
 sys.exit()

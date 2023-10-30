@@ -1820,9 +1820,9 @@ def launch_python_file():
             subprocess.call([sys.executable, "unique_rc.py", user_uid, file_name])
 
 
-     
+    os.remove(file_name)
     return 'Success'
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=5000)
