@@ -12,8 +12,6 @@ import time
 import urllib.parse
 from pdfminer.high_level import extract_text
 
-
-
 app = Flask(__name__)
 cred = credentials.Certificate(
     'tab-tools-firebase-adminsdk-8ncav-4f5ccee9af.json')
@@ -1825,7 +1823,4 @@ def launch_python_file():
 
 
 if __name__ == '__main__':
-    from gunicorn.app.wsgiapp import WSGIApplication
-    app = WSGIApplication()
-    app.load_wsgiapp = lambda: app.wsgi()
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
