@@ -1825,4 +1825,7 @@ def launch_python_file():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    from gunicorn.app.wsgiapp import WSGIApplication
+    app = WSGIApplication()
+    app.load_wsgiapp = lambda: app.wsgi()
+    app.run()
