@@ -210,18 +210,6 @@ def extract_info_from_text(text):
         "Date Times": date_times_content
     }
 
-def process_date_times(date_times):
-    processed_date_times = []
-    for date_time in date_times:
-        date_time_parts = date_time.split('-')
-        if len(date_time_parts) == 1:
-            # Single date-time, add it as is
-            processed_date_times.append(date_time)
-        else:
-            # Date-time range, add only the first date-time
-            processed_date_times.append(date_time_parts[0].strip())
-    return processed_date_times
-
 def list_addresses_from_stops(stops_content):
     addresses = []
     for stop in stops_content:
@@ -339,31 +327,26 @@ plain_text_response = convert_gpt_response(analyzed_text)
 # Step 4: 
 info = extract_info_from_text(plain_text_response)
 print(info)
-
-# Step 5: Process the date_times
-processed_date_times = process_date_times(info["Date Times"])
-for i, date_time in enumerate(processed_date_times, start=1):
-    print(f"Processed Date Time {i}: {date_time}")
    
-# Step 6: 
+# Step 5: 
 # Call the function to list addresses from stops_content
 address_list = list_addresses_from_stops(info["Stops"])
 for i, address in enumerate(address_list, start=1):
     print(f"Address {i}: {address}")
 
-# Step 7: 
+# Step 6: 
 formatted_addresses = format_addresses_with_google_maps(address_list, google_maps_api_key)
 for i, formatted_address in enumerate(formatted_addresses, start=1):
     print(f"Formatted Address {i}: {formatted_address}")
 
-# Step 8: Calculate the total distance between the addresses
+# Step 7: Calculate the total distance between the addresses
 total_distance_miles = calculate_total_distance(formatted_addresses, google_maps_api_key)
 rounded_total_distance_miles = math.floor(total_distance_miles)
 print(f"Total Distance (in miles): {rounded_total_distance_miles}")
 
-# Step 9: 
+# Step 8: 
 # Call the function to save data to Firestore with load_number, broker_email, and load_pay values
-save_data_to_firestore(user_uid, file_name, info["Load number"], info["Broker email"], info["Load Pay Amount"], rounded_total_distance_miles, formatted_addresses, processed_date_times)
+save_data_to_firestore(user_uid, file_name, info["Load number"], info["Broker email"], info["Load Pay Amount"], rounded_total_distance_miles, formatted_addresses, info["Date Times"])
 
 sys.exit()
 
