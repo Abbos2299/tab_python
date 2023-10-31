@@ -14,19 +14,45 @@ import googlemaps
 import openai
 import requests
 import usaddress
+from firebase_admin import db 
 
 timestamp = datetime.now().strftime("%y%m%d%H%M%S")
 
-cred = credentials.Certificate(
-    'tab-tools-firebase-adminsdk-8ncav-4f5ccee9af.json')
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+cred = credentials.Certificate('tab-tools-firebase-adminsdk-8ncav-4f5ccee9af.json')
+firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://tab-tools-default-rtdb.firebaseio.com/'
+    })
+db2 = firestore.client()
 
 user_uid = sys.argv[1]
 file_name = sys.argv[2]
 
 google_maps_api_key = 'AIzaSyAwKbIHeqAYrgDWY9m7Oa-XNMW1kqqe5To'
 gmaps = googlemaps.Client(key=google_maps_api_key)
+
+def generate_api_key():
+
+    # Reference to the 'real_token' node in your database
+    ref = db.reference('real_token')
+
+    # Retrieve data from the 'real_token' node
+    data = ref.get()
+
+    # Iterate through the keys and values
+    for key, value in data.items():
+        if value < 1200:
+            # Use this API key
+            openai_api_key = key
+
+            # Increment the value associated with the chosen key by 1
+            ref.child(openai_api_key).set(value + 1)
+
+            # Clean up when you're done
+            firebase_admin.delete_app(firebase_admin.get_app())
+            return openai_api_key
+
+    # If no suitable key is found, return None or handle it as needed
+    return None
 
 def extract_text_from_pdf(file_path):
     resource_manager = PDFResourceManager()
@@ -83,7 +109,7 @@ def extract_text_from_ocr(file_path):
 
 def gpt_analyze2(extracted_text):
     # Set your API key
-    api_key = "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"
+    api_key = api_key_result
     openai.api_key = api_key
 
     # Define the parameters for your request
@@ -115,7 +141,7 @@ def gpt_analyze2(extracted_text):
 
 def gpt_analyze(text):
     # Set your API key
-    api_key = "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"
+    api_key = api_key_result
     openai.api_key = api_key
 
     # Define the parameters for your request
@@ -276,13 +302,22 @@ def save_data_to_firestore(user_uid, file_name, LoadNumber, BrokerEmail, Rate, r
     }
 
     # Get a reference to the Firestore user document
-    user_ref = db.collection('users').document(user_uid)
+    user_ref = db2.collection('users').document(user_uid)
 
     # Create a new document in the "Loads" subcollection with the timestamp as the document name
     load_ref = user_ref.collection('Loads').document(timestamp)
 
     # Set the data for the document
     load_ref.set(data)
+
+
+
+# Step !1: Get Open AI key
+api_key_result = generate_api_key()
+if api_key_result:
+    print(f"Using API Key: {api_key_result}")
+else:
+    print("No suitable API key found.")
 
 # Step 1: Extract text from the PDF
 pdf_text = extract_text_from_pdf(file_name)
