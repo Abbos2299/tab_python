@@ -78,7 +78,7 @@ def gpt_analyze(text):
               "addresses": [],
               "date_times": [],
               "all_emails": [],
-              "all_addresses": []
+              "all_addresses": [],
             }
             1. Extract the load number;
             2. Extract Broker email address;
@@ -114,6 +114,8 @@ def extract_info_from_text(text):
 
     load_number = data["load_number"][0]
     broker_email = data["broker_email"][0]
+    if not broker_email or "@" not in broker_email:
+        broker_email = "sample@email.com"
     load_pay = data["load_pay"][0]
     if not load_pay.startswith("$"):
         load_pay = "$" + load_pay
@@ -121,13 +123,14 @@ def extract_info_from_text(text):
     date_times = data["date_times"]
     all_emails = data["all_emails"]
     all_addresses = data["all_addresses"]
+    filtered_emails = [email for email in all_emails if "@" in email]
     return {
         "Load number": load_number,
         "Broker email": broker_email,
         "Load Pay Amount": load_pay,
         "Stops": addresses,
         "Date Times": date_times,
-        "all_emails": all_emails,
+        "all_emails": filtered_emails,
         "all_addresses": all_addresses,
     }
 
@@ -139,12 +142,16 @@ def process_date_times(date_times):
         cleaned_date_time = re.sub(r'-.*$', '', date_time)
         
         # Remove unwanted symbols using regular expressions
-        cleaned_date_time = re.sub(r'[@$]', '', cleaned_date_time)
+        cleaned_date_time = re.sub(r'[^0-9/:]', ' ', cleaned_date_time)
+
+        cleaned_date_time_str = cleaned_date_time.strip()
+
 
         # Append the cleaned date_time to the list
-        processed_date_times.append(cleaned_date_time)
+        processed_date_times.append(cleaned_date_time_str)
 
     return processed_date_times
+
 
 def list_addresses_from_stops(stops_content):
     addresses = []
@@ -175,6 +182,10 @@ def format_addresses_with_google_maps(address_list, api_key):
             formatted_addresses.append(address)
 
     return formatted_addresses
+
+
+
+
 
 def calculate_total_distance(addresses, api_key):
     total_distance = 0
@@ -269,6 +280,49 @@ formatted_addresses = format_addresses_with_google_maps(address_list, google_map
 for i, formatted_address in enumerate(formatted_addresses, start=1):
     print(f"Formatted Address {i}: {formatted_address}")
 
+num_formatted_addresses = len(formatted_addresses)
+print(f"Number of Formatted Addresses: {num_formatted_addresses}")
+
+# Calculate the number of processed date times
+num_processed_date_times = len(processed_date_times)
+print(f"Number of Processed Date Times: {num_processed_date_times}")
+
+default_date = datetime.now().strftime("%m/%d/%Y")
+default_time = datetime.now().strftime("%H:%M")
+
+# Equalize the number date times
+if num_formatted_addresses > num_processed_date_times:
+    num_to_add = num_formatted_addresses - num_processed_date_times
+    for _ in range(num_to_add):
+        current_date_time = datetime.now()
+        formatted_date_time = current_date_time.strftime("%m/%d/%Y %H:%M")
+        processed_date_times.append(formatted_date_time)
+# If more Remove last values from processed_date_times
+elif num_formatted_addresses < num_processed_date_times:
+    num_to_remove = num_processed_date_times - num_formatted_addresses
+    for _ in range(num_to_remove):
+        processed_date_times.pop()
+# Check and modify the date and time format
+for i in range(len(processed_date_times)):
+    # Check if the format matches, and if not, add the missing date or time
+    match = re.match(r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2})', processed_date_times[i])
+    if not match:
+        if re.match(r'\d{2}/\d{2}/\d{4}', processed_date_times[i]):
+            # Missing time, add default time
+            processed_date_times[i] += f" {default_time}"
+        elif re.match(r'\d{2}:\d{2}', processed_date_times[i]):
+            # Missing date, add default date
+            processed_date_times[i] = f"{default_date} {processed_date_times[i]}"
+        else:
+            # Missing both date and time, add both defaults
+            processed_date_times[i] = f"{default_date} {default_time}"
+        
+
+
+# Now both lists have the same length
+num_processed_date_times = len(processed_date_times)
+print(f"Updated Number of Processed Date Times: {num_processed_date_times}")
+
 # Step 7: Calculate the total distance between the addresses
 total_distance_miles = calculate_total_distance(formatted_addresses, google_maps_api_key)
 rounded_total_distance_miles = math.floor(total_distance_miles)
@@ -279,5 +333,3 @@ print(f"Total Distance (in miles): {rounded_total_distance_miles}")
 save_data_to_firestore(user_uid, file_name, info["Load number"], info["Broker email"], info["Load Pay Amount"], rounded_total_distance_miles, formatted_addresses, processed_date_times, info["all_emails"], info["all_addresses"])
 
 sys.exit()
-
-

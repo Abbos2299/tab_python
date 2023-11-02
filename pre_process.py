@@ -27,7 +27,6 @@ db2 = firestore.client()
 user_uid = sys.argv[1]
 file_name = sys.argv[2]
 
-
 google_maps_api_key = 'AIzaSyAwKbIHeqAYrgDWY9m7Oa-XNMW1kqqe5To'
 gmaps = googlemaps.Client(key=google_maps_api_key)
 
@@ -89,7 +88,7 @@ pdf_text = extract_text_from_pdf(file_name)
 
 word_count = count_words(pdf_text)
 
-if word_count < 100:
+if word_count > 100:
         print("words < 100")
         ocr_text = extract_text_from_ocr(file_name)
         # Get the base name of the PDF file (without extension)
@@ -125,6 +124,11 @@ if word_count < 100:
         ocr_text = pdf_text
 else:
         print("words > 100")
+
+        if len(pdf_text) > 10000:
+            print("PDF text exceeds 10,000 characters. Truncating...")
+        pdf_text = pdf_text[:10000]
+        
         ocr_text = pdf_text
 
 subprocess.call([sys.executable, "unique_rc.py", user_uid, file_name, ocr_text])
