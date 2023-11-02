@@ -88,7 +88,7 @@ pdf_text = extract_text_from_pdf(file_name)
 
 word_count = count_words(pdf_text)
 
-if word_count > 100:
+if word_count < 100:
         print("words < 100")
         ocr_text = extract_text_from_ocr(file_name)
         # Get the base name of the PDF file (without extension)
