@@ -1,0 +1,16 @@
+[Unit]
+Description=Your Flask Application
+After=network.target
+
+[Service]
+User=tab_name
+Group=tab_group
+WorkingDirectory=tab_python/
+ExecStart=gunicorn -w 1 -b 0.0.0.0:5000 --timeout 120 def_com:app
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=def_com
+
+[Install]
+WantedBy=multi-user.target
