@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=tab_name
 Group=tab_group
-WorkingDirectory=tab_python/
+WorkingDirectory=/home/ec2-user/tab_python/
 ExecStart=gunicorn -w 1 -b 0.0.0.0:5000 --timeout 120 def_com:app
 Restart=always
 StandardOutput=syslog
