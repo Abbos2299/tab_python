@@ -75,7 +75,8 @@ def gpt_analyze(text):
               "load_number": [],
               "broker_email": [],
               "load_pay": [],
-              "addresses": [],
+              "all_stops": [],
+              "date_time_info": [],
               "date_times": [],
               "all_emails": [],
               "all_addresses": [],
@@ -83,12 +84,11 @@ def gpt_analyze(text):
             1. Extract the load number;
             2. Extract Broker email address;
             3. Total "Load Pay" Amount;
-            4. List all "Stops" full addresses in the order they appear in text;
-            5. List all date and time information for each "Stops";
-            6. Clean up the addresses from 4th (remove unnecessary parts);
-            7. Clean up the date and time information from 5th and format as "dd/MM/yyyy HH:mm.".
-            8. All Email addresses;
-            9  All US addresses;
+            4. List each "Stop" in the order they appear in text. Format "Street, City, State, Zip.";
+            5. List one date and time information for each "Stops", if range pick first;
+            6. Clean the date and time information from 5th and format as "dd/MM/yyyy HH:mm.".
+            7. All Email addresses;
+            8. All US addresses;
               """},
             {"role": "assistant", "content": text},
         ],
@@ -112,14 +112,24 @@ def extract_info_from_text(text):
     # Use re.findall to find all matches of the pattern in the text
     data = json.loads(text)
 
-    load_number = data["load_number"][0]
-    broker_email = data["broker_email"][0]
-    if not broker_email or "@" not in broker_email:
+    load_number = data.get("load_number", [""])[0]
+
+    if not load_number:
+        gpt_analyze_result = gpt_analyze(text)  # Call the gpt_analyze function when load_number is empty
+        return gpt_analyze_result
+    if "broker_email" in data and data["broker_email"]:
+        if "@" in data["broker_email"][0]:
+            broker_email = data["broker_email"][0]
+        else:
+            broker_email = "sample@email.com"
+    else:
         broker_email = "sample@email.com"
+
+
     load_pay = data["load_pay"][0]
     if not load_pay.startswith("$"):
         load_pay = "$" + load_pay
-    addresses = data["addresses"]
+    addresses = data["all_stops"]
     date_times = data["date_times"]
     all_emails = data["all_emails"]
     all_addresses = data["all_addresses"]
@@ -184,7 +194,10 @@ def format_addresses_with_google_maps(address_list, api_key):
     return formatted_addresses
 
 
-
+def is_valid_address(address, api_key):
+    gmaps = googlemaps.Client(key=api_key)
+    geocode_result = gmaps.geocode(address)
+    return len(geocode_result) > 0  # Check if any results were returned
 
 
 def calculate_total_distance(addresses, api_key):
@@ -199,10 +212,10 @@ def calculate_total_distance(addresses, api_key):
     for i in range(num_addresses - 1):
         origin = addresses[i]
         destination = addresses[i + 1]
-
+        print(origin,destination)
         # Make a request to the Google Maps Distance Matrix API
         distance_matrix = gmaps.distance_matrix(origin, destination, units="imperial")  # Specify units as imperial for miles
-
+        print(distance_matrix)
         # Extract the distance value from the response
         if 'rows' in distance_matrix and len(distance_matrix['rows']) > 0:
             row = distance_matrix['rows'][0]
@@ -302,26 +315,25 @@ elif num_formatted_addresses < num_processed_date_times:
     num_to_remove = num_processed_date_times - num_formatted_addresses
     for _ in range(num_to_remove):
         processed_date_times.pop()
+        
 # Check and modify the date and time format
-for i in range(len(processed_date_times)):
-    # Check if the format matches, and if not, add the missing date or time
-    match = re.match(r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2})', processed_date_times[i])
-    if not match:
-        if re.match(r'\d{2}/\d{2}/\d{4}', processed_date_times[i]):
-            # Missing time, add default time
-            processed_date_times[i] += f" {default_time}"
-        elif re.match(r'\d{2}:\d{2}', processed_date_times[i]):
-            # Missing date, add default date
-            processed_date_times[i] = f"{default_date} {processed_date_times[i]}"
-        else:
-            # Missing both date and time, add both defaults
-            processed_date_times[i] = f"{default_date} {default_time}"
+if num_formatted_addresses != num_processed_date_times:
+    for i in range(len(processed_date_times)):
+        match = re.match(r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2})', processed_date_times[i])
+        if not match:
+            if re.match(r'\d{2}/\d{2}/\d{4}', processed_date_times[i]):
+                processed_date_times[i] += f" {default_time}"
+            elif re.match(r'\d{2}:\d{2}', processed_date_times[i]):
+                processed_date_times[i] = f"{default_date} {processed_date_times[i]}"
+            else:
+                processed_date_times[i] = f"{default_date} {default_time}"
         
 
 
 # Now both lists have the same length
 num_processed_date_times = len(processed_date_times)
 print(f"Updated Number of Processed Date Times: {num_processed_date_times}")
+
 
 # Step 7: Calculate the total distance between the addresses
 total_distance_miles = calculate_total_distance(formatted_addresses, google_maps_api_key)
