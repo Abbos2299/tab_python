@@ -122,8 +122,12 @@ def extract_info_from_text(text):
             broker_email = data["broker_email"][0]
         else:
             broker_email = "sample@email.com"
+            data["all_emails"].append(broker_email)
     else:
         broker_email = "sample@email.com"
+        data["all_emails"].append(broker_email)
+
+    
 
 
     load_pay = data["load_pay"][0]

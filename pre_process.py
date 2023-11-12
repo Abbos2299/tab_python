@@ -27,7 +27,7 @@ db2 = firestore.client()
 user_uid = sys.argv[1]
 file_name = sys.argv[2]
 # user_uid = 'YV6gVXWf83VdVOw8RRgdDJlzjIM2'
-# file_name = "/Users/abbos/Developer/RCs/29161 Rate Confirmation - Feb 17, 2023 07.17.14.pdf"
+# file_name = "/Users/abbos/Developer/tab_python-main/1643751.pdf"
 
 google_maps_api_key = 'AIzaSyAwKbIHeqAYrgDWY9m7Oa-XNMW1kqqe5To'
 gmaps = googlemaps.Client(key=google_maps_api_key)
