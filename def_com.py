@@ -1817,10 +1817,8 @@ def launch_python_file():
             print("RC don't identified")
             subprocess.call([sys.executable, "pre_process.py", user_uid, file_name])
 
-
     os.remove(file_name)
     return 'Success'
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

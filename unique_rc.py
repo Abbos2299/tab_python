@@ -108,46 +108,48 @@ def convert_gpt_response(response):
     
 
 def extract_info_from_text(text):
+    try:
+        # Use re.findall to find all matches of the pattern in the text
+        data = json.loads(text)
 
-    # Use re.findall to find all matches of the pattern in the text
-    data = json.loads(text)
+        load_number = data.get("load_number", "")
+        load_number = load_number[0] if isinstance(load_number, list) else load_number
 
-    load_number = data.get("load_number", [""])[0]
-
-    if not load_number:
-        gpt_analyze_result = gpt_analyze(text)  # Call the gpt_analyze function when load_number is empty
-        return gpt_analyze_result
-    if "broker_email" in data and data["broker_email"]:
-        if "@" in data["broker_email"][0]:
-            broker_email = data["broker_email"][0]
+        if "broker_email" in data and data["broker_email"]:
+            broker_email = data.get("broker_email", "")
+            if "@" not in broker_email:
+                broker_email = "sample@email.com"
+                data["all_emails"].append(broker_email)
         else:
             broker_email = "sample@email.com"
             data["all_emails"].append(broker_email)
-    else:
-        broker_email = "sample@email.com"
-        data["all_emails"].append(broker_email)
+
+        load_pay = data.get("load_pay", "")
+        load_pay = load_pay[0] if isinstance(load_pay, list) else load_pay
+        if not load_pay.startswith("$"):
+            load_pay = "$" + load_pay     
+
+        addresses = data.get("all_stops", [])
+        date_times = data.get("date_times", [])
+        all_emails = data.get("all_emails", [])
+        all_addresses = data.get("all_addresses", [])
+        filtered_emails = [email for email in all_emails if "@" in email]
+
+        return {
+            "Load number": load_number,
+            "Broker email": broker_email,
+            "Load Pay Amount": load_pay,
+            "Stops": addresses,
+            "Date Times": date_times,
+            "all_emails": filtered_emails,
+            "all_addresses": all_addresses,
+        }
+    except json.JSONDecodeError:
+        # Handle JSON decoding errors if the response is not a valid JSON
+        print("Error decoding JSON response.")
+        return None
 
     
-
-
-    load_pay = data["load_pay"][0]
-    if not load_pay.startswith("$"):
-        load_pay = "$" + load_pay
-    addresses = data["all_stops"]
-    date_times = data["date_times"]
-    all_emails = data["all_emails"]
-    all_addresses = data["all_addresses"]
-    filtered_emails = [email for email in all_emails if "@" in email]
-    return {
-        "Load number": load_number,
-        "Broker email": broker_email,
-        "Load Pay Amount": load_pay,
-        "Stops": addresses,
-        "Date Times": date_times,
-        "all_emails": filtered_emails,
-        "all_addresses": all_addresses,
-    }
-
 def process_date_times(date_times):
     processed_date_times = []
 
