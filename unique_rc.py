@@ -86,7 +86,7 @@ def gpt_analyze(text):
             3. Total "Load Pay" Amount;
             4. List each "Stop" in the order they appear in text. Format "Street, City, State, Zip.";
             5. List one date and time information for each "Stops", if range pick first;
-            6. Clean the date and time information from 5th and format as "dd/MM/yyyy HH:mm.".
+            6. Clean the date and time information from 5th and format as "MM/dd/yyyy HH:mm.".
             7. All Email addresses;
             8. All US addresses;
               """},
