@@ -241,6 +241,7 @@ def save_data_to_firestore(user_uid, file_name, LoadNumber, BrokerEmail, Rate, r
     data = {
         'FileName': file_name,
         'LoadNumber': LoadNumber,
+        'LoadStatus': 'Waiting PU',
         'Rate': Rate,
         'Driver': user_uid,
         'BrokerEmail': BrokerEmail,
