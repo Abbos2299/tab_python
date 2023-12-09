@@ -45,6 +45,7 @@ def extract_text_from_pdf(file_path):
     text = output_stream.getvalue()
     device.close()
     output_stream.close()
+    print(text)
     return text
 
 def count_words(text):

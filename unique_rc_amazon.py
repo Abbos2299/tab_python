@@ -66,7 +66,6 @@ def gpt_analyze(text):
             json format:
             {
               "load_number": [],
-              "broker_email": [],
               "load_pay": [],
               "all_stops": [],
               "date_time_info": [],
@@ -75,13 +74,12 @@ def gpt_analyze(text):
               "all_addresses": [],
             }
             1. Extract the load number;
-            2. Extract Broker email address;
-            3. Total "Load Pay" Amount;
-            4. List each "Stop" in the order they appear in text. Format "Street, City, State, Zip.";
-            5. List one date and time information for each "Stops", if range pick first;
-            6. Clean the date and time information from 5th and format as "MM/dd/yyyy HH:mm.".
-            7. All Email addresses;
-            8. All US addresses;
+            2. Total "Load Pay" Amount;
+            3. List each "Stop" in the order they appear in text. Format "Street, City, State, Zip.";
+            4. List one date and time information for each "Stops", if range pick first;
+            5. Clean the date and time information from 5th and format as "MM/dd/yyyy HH:mm.".
+            6. All Email addresses;
+            7. All US addresses;
               """},
             {"role": "assistant", "content": text},
         ],
@@ -100,41 +98,39 @@ def convert_gpt_response(response):
     return assistant_reply
     
 
+# ... (Previous code remains unchanged)
+
 def extract_info_from_text(text):
     try:
         # Use re.findall to find all matches of the pattern in the text
         data = json.loads(text)
 
         load_number = data.get("load_number", "")
-        load_number = load_number[0] if isinstance(load_number, list) else load_number
-
-        if "broker_email" in data and data["broker_email"]:
-            broker_email = data.get("broker_email", "")
-            if "@" not in broker_email:
-                broker_email = "sample@email.com"
-                data["all_emails"].append(broker_email)
-        else:
-            broker_email = "sample@email.com"
-            data["all_emails"].append(broker_email)
+        load_number = load_number[0] if isinstance(load_number, list) and len(load_number) > 0 else 'N/A'
 
         load_pay = data.get("load_pay", "")
-        load_pay = load_pay[0] if isinstance(load_pay, list) else load_pay
+        load_pay = load_pay[0] if isinstance(load_pay, list) and len(load_pay) > 0 else 'N/A'
         if not load_pay.startswith("$"):
-            load_pay = "$" + load_pay     
+            load_pay = "$" + load_pay
 
         addresses = data.get("all_stops", [])
+        addresses = addresses if isinstance(addresses, list) and len(addresses) > 0 else ['N/A']
+
         date_times = data.get("date_times", [])
+        date_times = date_times if isinstance(date_times, list) and len(date_times) > 0 else ['N/A']
+
         all_emails = data.get("all_emails", [])
+        all_emails = all_emails if isinstance(all_emails, list) and len(all_emails) > 0 else ['N/A']
+
         all_addresses = data.get("all_addresses", [])
-        filtered_emails = [email for email in all_emails if "@" in email]
+        all_addresses = all_addresses if isinstance(all_addresses, list) and len(all_addresses) > 0 else ['N/A']
 
         return {
             "Load number": load_number,
-            "Broker email": broker_email,
             "Load Pay Amount": load_pay,
             "Stops": addresses,
             "Date Times": date_times,
-            "all_emails": filtered_emails,
+            "all_emails": all_emails,
             "all_addresses": all_addresses,
         }
     except json.JSONDecodeError:
@@ -229,7 +225,7 @@ def calculate_total_distance(addresses, api_key):
 
     return total_distance_miles
 
-def save_data_to_firestore(user_uid, file_name, LoadNumber, BrokerEmail, Rate, rounded_total_distance_miles, formatted_addresses, processed_date_times, all_emails, all_addresses):
+def save_data_to_firestore(user_uid, file_name, LoadNumber, Rate, rounded_total_distance_miles, formatted_addresses, processed_date_times, all_emails, all_addresses):
     # Define the Firestore document data
     data = {
         'FileName': file_name,
@@ -237,7 +233,7 @@ def save_data_to_firestore(user_uid, file_name, LoadNumber, BrokerEmail, Rate, r
         'LoadStatus': 'Waiting PU',
         'Rate': Rate,
         'Driver': user_uid,
-        'BrokerEmail': BrokerEmail,
+        'BrokerEmail': 'Amazon Load',
         'Submit BOL': 'no',
         'Broker Update': 'no',
         'Status': 'Active',
@@ -342,6 +338,6 @@ print(f"Total Distance (in miles): {rounded_total_distance_miles}")
 
 # Step 8: 
 # Call the function to save data to Firestore with load_number, broker_email, and load_pay values
-save_data_to_firestore(user_uid, file_name, info["Load number"], info["Broker email"], info["Load Pay Amount"], rounded_total_distance_miles, formatted_addresses, processed_date_times, info["all_emails"], info["all_addresses"])
+save_data_to_firestore(user_uid, file_name, info["Load number"], info["Load Pay Amount"], rounded_total_distance_miles, formatted_addresses, processed_date_times, info["all_emails"], info["all_addresses"])
 
 sys.exit()
