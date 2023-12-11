@@ -31,7 +31,7 @@ pages = convert_from_path(file_name, 300)  # 300 is the DPI (adjust if needed)
 # Extract text from each page
 extracted_text = ''
 for page in pages:
-    text = pytesseract.image_to_string(page, lang='eng')  # Change 'eng' to the language of your PDF if needed
+    text = pytesseract.image_to_string(page, lang='eng', config='--tessdata-dir "/usr/local/share/"')
     extracted_text += text + '\n'
 
 # Output the extracted text
