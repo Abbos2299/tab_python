@@ -31,7 +31,15 @@ pages = convert_from_path(file_name, 300)  # 300 is the DPI (adjust if needed)
 # Extract text from each page
 extracted_text = ''
 for page in pages:
-    text = pytesseract.image_to_string(page, lang='eng', config='--tessdata-dir "/usr/local/share/"')
+    print("Before pytesseract.image_to_string:")
+    print("TESSDATA_PREFIX:", os.environ.get("TESSDATA_PREFIX"))
+    print("Path to language data:", "/usr/local/share/")
+
+    text = pytesseract.image_to_string(page, lang='eng', config='--tessdata-dir "/usr/local/share/tessdata"')
+    print("After pytesseract.image_to_string:")
+    print("TESSDATA_PREFIX:", os.environ.get("TESSDATA_PREFIX"))
+    print("Path to language data:", "/usr/local/share/")
+        
     extracted_text += text + '\n'
 
 # Output the extracted text
