@@ -9,6 +9,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import os
 os.environ["PATH"] += os.pathsep + "/usr/bin/"
+os.environ["PATH"] += os.pathsep + "/usr/local/bin/"
 
 cred = credentials.Certificate('tab-tools-firebase-adminsdk-8ncav-4f5ccee9af.json')
 firebase_admin.initialize_app(cred, {
