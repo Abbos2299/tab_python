@@ -7,7 +7,8 @@ from pdf2image import convert_from_path
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-
+import os
+os.environ["PATH"] += os.pathsep + "/usr/bin/"
 
 cred = credentials.Certificate('tab-tools-firebase-adminsdk-8ncav-4f5ccee9af.json')
 firebase_admin.initialize_app(cred, {
