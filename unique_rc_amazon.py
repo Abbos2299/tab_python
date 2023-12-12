@@ -286,6 +286,8 @@ for i, address in enumerate(address_list, start=1):
 
 # Step 6: 
 formatted_addresses = format_addresses_with_google_maps(address_list, google_maps_api_key)
+formatted_addresses = formatted_addresses if formatted_addresses else ['N/A']
+
 for i, formatted_address in enumerate(formatted_addresses, start=1):
     print(f"Formatted Address {i}: {formatted_address}")
 
