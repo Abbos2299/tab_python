@@ -110,14 +110,15 @@ def extract_info_from_text(text):
         if not load_pay.startswith("$"):
             load_pay = "$" + load_pay
 
-        addresses = data.get("all_stops", ["Address is Empty"])
-        addresses = addresses if isinstance(addresses, list) and len(addresses) > 0 else ['Address is Empty']
+        addresses = data.get("all_stops", [])
+        if not isinstance(addresses, list) or len(addresses) == 0:
+            addresses = ["Address 1", "Address 2"]
 
-        date_time_info = data.get("date_time_info", [datetime.now().strftime("%Y-%m-%d %H:%M")])
-        date_time_info = date_time_info if isinstance(date_time_info, list) and len(date_time_info) > 0 else [datetime.now().strftime("%Y-%m-%d %H:%M")]
+        date_time_info = data.get("date_time_info", [datetime.now().strftime("%m-%d-%Y %H:%M")])
+        date_time_info = date_time_info if isinstance(date_time_info, list) and len(date_time_info) > 0 else [datetime.now().strftime("%m-%d-%Y %H:%M")]
 
-        date_times = data.get("date_times", [datetime.now().strftime("%Y-%m-%d %H:%M")])
-        date_times = date_times if isinstance(date_times, list) and len(date_times) > 0 else [datetime.now().strftime("%Y-%m-%d %H:%M")]
+        date_times = data.get("date_times", [datetime.now().strftime("%m-%d-%Y %H:%M")])
+        date_times = date_times if isinstance(date_times, list) and len(date_times) > 0 else [datetime.now().strftime("%m-%d-%Y %H:%M")]
 
         all_emails = data.get("all_emails", ["sample@gmail.com"])
         all_emails = all_emails if isinstance(all_emails, list) and len(all_emails) > 0 else ['sample@gmail.com']
