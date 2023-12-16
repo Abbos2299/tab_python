@@ -77,7 +77,7 @@ def gpt_analyze(text):
             2. Total "Load Pay" Amount;
             3. List each "Stop" in the order they appear in text. Format "Street, City, State, Zip.";
             4. List one date and time information for each "Stops", if range pick first;
-            5. Clean the date and time information from 5th and format as "MM/dd/yyyy HH:mm.".
+            5. Clean the date and time information from 4th and format as "MM/dd/yyyy HH:mm.".
             6. All Email addresses;
             7. All US addresses;
               """},
@@ -96,34 +96,34 @@ def convert_gpt_response(response):
     # Extract the assistant's reply from the response
     assistant_reply = response['choices'][0]['message']['content']
     return assistant_reply
-    
-
-# ... (Previous code remains unchanged)
 
 def extract_info_from_text(text):
     try:
         # Use re.findall to find all matches of the pattern in the text
         data = json.loads(text)
 
-        load_number = data.get("load_number", "")
-        load_number = load_number[0] if isinstance(load_number, list) and len(load_number) > 0 else 'N/A'
+        load_number = data.get("load_number", "0000")
+        load_number = load_number[0] if isinstance(load_number, list) and len(load_number) > 0 else '0000'
 
-        load_pay = data.get("load_pay", "")
-        load_pay = load_pay[0] if isinstance(load_pay, list) and len(load_pay) > 0 else 'N/A'
+        load_pay = data.get("load_pay", "0")
+        load_pay = load_pay[0] if isinstance(load_pay, list) and len(load_pay) > 0 else '0'
         if not load_pay.startswith("$"):
             load_pay = "$" + load_pay
 
-        addresses = data.get("all_stops", [])
-        addresses = addresses if isinstance(addresses, list) and len(addresses) > 0 else ['N/A']
+        addresses = data.get("all_stops", ["Address is Empty"])
+        addresses = addresses if isinstance(addresses, list) and len(addresses) > 0 else ['Address is Empty']
 
-        date_times = data.get("date_times", [])
-        date_times = date_times if isinstance(date_times, list) and len(date_times) > 0 else ['N/A']
+        date_time_info = data.get("date_time_info", [datetime.now().strftime("%Y-%m-%d %H:%M")])
+        date_time_info = date_time_info if isinstance(date_time_info, list) and len(date_time_info) > 0 else [datetime.now().strftime("%Y-%m-%d %H:%M")]
 
-        all_emails = data.get("all_emails", [])
-        all_emails = all_emails if isinstance(all_emails, list) and len(all_emails) > 0 else ['N/A']
+        date_times = data.get("date_times", [datetime.now().strftime("%Y-%m-%d %H:%M")])
+        date_times = date_times if isinstance(date_times, list) and len(date_times) > 0 else [datetime.now().strftime("%Y-%m-%d %H:%M")]
 
-        all_addresses = data.get("all_addresses", [])
-        all_addresses = all_addresses if isinstance(all_addresses, list) and len(all_addresses) > 0 else ['N/A']
+        all_emails = data.get("all_emails", ["sample@gmail.com"])
+        all_emails = all_emails if isinstance(all_emails, list) and len(all_emails) > 0 else ['sample@gmail.com']
+
+        all_addresses = data.get("all_addresses", ["Address is Empty"])
+        all_addresses = all_addresses if isinstance(all_addresses, list) and len(all_addresses) > 0 else ['Address is Empty']
 
         return {
             "Load number": load_number,
@@ -132,6 +132,7 @@ def extract_info_from_text(text):
             "Date Times": date_times,
             "all_emails": all_emails,
             "all_addresses": all_addresses,
+            "Date Time Info": date_time_info,
         }
     except json.JSONDecodeError:
         # Handle JSON decoding errors if the response is not a valid JSON
