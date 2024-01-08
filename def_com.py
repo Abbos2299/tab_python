@@ -93,6 +93,7 @@ def launch_amazon_file():
 
     broker_name = None  # Initialize broker_name
     last_added_blob = None
+    file_name = None
 
     for blob in blobs:
         if not last_added_blob or blob.updated > last_added_blob.updated:
@@ -137,7 +138,8 @@ def launch_amazon_file():
             print("RC don't identified")
             subprocess.call([sys.executable, "pre_process_amazon.py", user_uid, file_name])
 
-    os.remove(file_name)
+    if file_name:
+        os.remove(file_name)
     return 'Success'
 
 if __name__ == '__main__':
